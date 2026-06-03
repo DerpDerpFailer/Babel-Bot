@@ -1,0 +1,30 @@
+services:
+
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    restart: unless-stopped
+    environment:
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-ar,cs,da,de,el,en,es,fi,fr,hu,it,ja,ko,nl,no,pl,pt,ro,ru,sv,tr,uk,zh}
+      - LT_API_KEYS=${LIBRETRANSLATE_API_KEY:-}
+    volumes:
+      - libretranslate_data:/home/libretranslate/.local
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:5000/languages || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  bot:
+    build: ./bot
+    restart: unless-stopped
+    depends_on:
+      libretranslate:
+        condition: service_healthy
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - LIBRETRANSLATE_URL=${LIBRETRANSLATE_URL:-http://libretranslate:5000}
+      - LIBRETRANSLATE_API_KEY=${LIBRETRANSLATE_API_KEY:-}
+
+volumes:
+  libretranslate_data:
