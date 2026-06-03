@@ -19,8 +19,7 @@ services:
     build: ./bot
     restart: unless-stopped
     depends_on:
-      libretranslate:
-        condition: service_healthy
+      - libretranslate
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - LIBRETRANSLATE_URL=${LIBRETRANSLATE_URL:-http://libretranslate:5000}

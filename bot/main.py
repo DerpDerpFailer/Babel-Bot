@@ -69,20 +69,21 @@ async def detect_and_translate(text: str, target_lang: str) -> tuple[str, str]:
     return detected, translated
 
 
-async def wait_for_libretranslate(max_attempts: int = 30, delay: float = 5.0) -> None:
-    """Block until LibreTranslate /languages endpoint is reachable."""
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        for attempt in range(1, max_attempts + 1):
-            try:
+async def wait_for_libretranslate(delay: float = 10.0) -> None:
+    """Block indefinitely until LibreTranslate /languages endpoint is reachable."""
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 r = await client.get(f"{LIBRETRANSLATE_URL}/languages")
                 if r.status_code == 200:
                     log.info("LibreTranslate is ready.")
                     return
-            except Exception:
-                pass
-            log.info("Waiting for LibreTranslate… (%d/%d)", attempt, max_attempts)
-            await asyncio.sleep(delay)
-    raise RuntimeError("LibreTranslate did not become ready in time.")
+        except Exception:
+            pass
+        log.info("Waiting for LibreTranslate… (attempt %d)", attempt)
+        await asyncio.sleep(delay)
 
 
 @bot.event
