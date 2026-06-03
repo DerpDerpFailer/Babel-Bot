@@ -31,7 +31,6 @@ EMOJI_TO_LANG: dict[str, str] = {
     "🇹🇷": "tr",
     "🇵🇱": "pl",
     "🇸🇪": "sv",
-    "🇳🇴": "no",
     "🇩🇰": "da",
     "🇫🇮": "fi",
     "🇬🇷": "el",
