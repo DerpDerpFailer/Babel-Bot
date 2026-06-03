@@ -60,6 +60,8 @@ async def detect_and_translate(text: str, target_lang: str) -> tuple[str, str]:
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.post(f"{LIBRETRANSLATE_URL}/translate", json=payload)
+        if not response.is_success:
+            log.error("LibreTranslate /translate HTTP %d: %s", response.status_code, response.text[:500])
         response.raise_for_status()
         data = response.json()
 
@@ -114,7 +116,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User | disco
     try:
         detected, translated = await detect_and_translate(content, target_lang)
     except Exception as exc:
-        log.error("Translation failed: %s", exc)
+        log.error("Translation failed: %s", exc, exc_info=True)
         await message.channel.send(
             f"⚠️ Translation error: could not reach the translation service.",
             reference=message,
