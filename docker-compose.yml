@@ -9,11 +9,11 @@ services:
     volumes:
       - libretranslate_data:/home/libretranslate/.local
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:5000/languages || exit 1"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/languages')"]
       interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
+      timeout: 15s
+      retries: 20
+      start_period: 300s
 
   bot:
     build: ./bot
