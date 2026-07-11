@@ -93,21 +93,29 @@ async def on_ready() -> None:
 
 
 @bot.event
-async def on_reaction_add(reaction: discord.Reaction, user: discord.User | discord.Member) -> None:
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent) -> None:
     # Ignore reactions from bots (including ourselves)
-    if user.bot:
+    if payload.member is not None and payload.member.bot:
+        return
+    if payload.user_id == bot.user.id:
         return
 
-    emoji = str(reaction.emoji)
+    emoji = str(payload.emoji)
     target_lang = EMOJI_TO_LANG.get(emoji)
     if target_lang is None:
         return
 
-    message = reaction.message
+    channel = bot.get_channel(payload.channel_id) or await bot.fetch_channel(payload.channel_id)
+    try:
+        message = await channel.fetch_message(payload.message_id)
+    except discord.NotFound:
+        return
 
     # Ignore bot messages
     if message.author.bot:
         return
+
+    user = payload.member or await bot.fetch_user(payload.user_id)
 
     content = message.content.strip()
     if not content:
