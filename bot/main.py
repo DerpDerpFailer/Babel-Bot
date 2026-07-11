@@ -43,6 +43,9 @@ EMOJI_TO_LANG: dict[str, str] = {
 LIBRETRANSLATE_URL = os.environ["LIBRETRANSLATE_URL"].rstrip("/")
 LIBRETRANSLATE_API_KEY = os.environ.get("LIBRETRANSLATE_API_KEY", "")
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
+# LibreTranslate can take a while to answer the first request after startup
+# (it lazily loads the language-detection + translation models into memory).
+TRANSLATE_TIMEOUT = float(os.environ.get("TRANSLATE_TIMEOUT", "60.0"))
 
 
 intents = discord.Intents.default()
@@ -58,7 +61,7 @@ async def detect_and_translate(text: str, target_lang: str) -> tuple[str, str]:
     if LIBRETRANSLATE_API_KEY:
         payload["api_key"] = LIBRETRANSLATE_API_KEY
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=TRANSLATE_TIMEOUT) as client:
         response = await client.post(f"{LIBRETRANSLATE_URL}/translate", json=payload)
         if not response.is_success:
             log.error("LibreTranslate /translate HTTP %d: %s", response.status_code, response.text[:500])
@@ -122,11 +125,21 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent) -> None:
         return
 
     try:
-        detected, translated = await detect_and_translate(content, target_lang)
+        async with message.channel.typing():
+            detected, translated = await detect_and_translate(content, target_lang)
+    except httpx.TimeoutException as exc:
+        log.error("Translation timed out: %s", exc, exc_info=True)
+        await message.channel.send(
+            "⚠️ Translation error: the translation service took too long to respond "
+            "(it may still be loading its models — try again in a moment).",
+            reference=message,
+            mention_author=False,
+        )
+        return
     except Exception as exc:
         log.error("Translation failed: %s", exc, exc_info=True)
         await message.channel.send(
-            f"⚠️ Translation error: could not reach the translation service.",
+            "⚠️ Translation error: could not reach the translation service.",
             reference=message,
             mention_author=False,
         )
