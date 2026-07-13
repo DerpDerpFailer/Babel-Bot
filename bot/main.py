@@ -120,7 +120,9 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent) -> None:
 
     user = payload.member or await bot.fetch_user(payload.user_id)
 
-    content = message.content.strip()
+    # Use clean_content: raw mention/channel/emoji syntax (e.g. "<@12345>") confuses
+    # LibreTranslate's model and can make it degenerate into repeating garbage tokens.
+    content = message.clean_content.strip()
     if not content:
         return
 
