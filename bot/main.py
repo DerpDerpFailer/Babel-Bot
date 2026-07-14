@@ -46,6 +46,11 @@ DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 # LibreTranslate can take a while to answer the first request after startup
 # (it lazily loads the language-detection + translation models into memory).
 TRANSLATE_TIMEOUT = float(os.environ.get("TRANSLATE_TIMEOUT", "60.0"))
+# Self-hosted LibreTranslate does CPU-bound inference: concurrent requests
+# compete for the same CPU and slow each other down until they time out.
+# Serialize requests instead so they queue up and each one still completes.
+TRANSLATE_CONCURRENCY = int(os.environ.get("TRANSLATE_CONCURRENCY", "1"))
+translate_semaphore = asyncio.Semaphore(TRANSLATE_CONCURRENCY)
 
 
 intents = discord.Intents.default()
@@ -128,7 +133,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent) -> None:
 
     try:
         async with message.channel.typing():
-            detected, translated = await detect_and_translate(content, target_lang)
+            async with translate_semaphore:
+                detected, translated = await detect_and_translate(content, target_lang)
     except httpx.TimeoutException as exc:
         log.error("Translation timed out: %s", exc, exc_info=True)
         await message.channel.send(
