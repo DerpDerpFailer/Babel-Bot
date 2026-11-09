@@ -1,13 +1,16 @@
 services:
 
   libretranslate:
-    image: libretranslate/libretranslate:latest
+    # Pinned: bump deliberately, never track :latest
+    image: libretranslate/libretranslate:v1.9.6
     restart: unless-stopped
     environment:
       - LT_LOAD_ONLY=${LT_LOAD_ONLY:-ar,cs,da,de,el,en,es,fi,fr,hu,it,ja,ko,nl,pl,pt,ro,ru,sv,tr,uk,zh}
       - LT_API_KEYS=${LIBRETRANSLATE_API_KEY:-}
     volumes:
-      - libretranslate_data:/home/libretranslate/.local
+      # Named volume by default; set LT_DATA_PATH to a host path for a bind mount
+      # (e.g. /mnt/user/appdata/babel-bot/libretranslate on Unraid, owned by 1032:1032)
+      - ${LT_DATA_PATH:-libretranslate_data}:/home/libretranslate/.local
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/languages')"]
       interval: 30s
@@ -19,11 +22,17 @@ services:
     build: ./bot
     restart: unless-stopped
     depends_on:
-      - libretranslate
+      libretranslate:
+        condition: service_healthy
+    # Set BOT_REPLICAS=0 to run LibreTranslate alone (pre-warm before a cutover)
+    deploy:
+      replicas: ${BOT_REPLICAS:-1}
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - LIBRETRANSLATE_URL=${LIBRETRANSLATE_URL:-http://libretranslate:5000}
       - LIBRETRANSLATE_API_KEY=${LIBRETRANSLATE_API_KEY:-}
+      - TRANSLATE_TIMEOUT=${TRANSLATE_TIMEOUT:-60.0}
+      - TRANSLATE_CONCURRENCY=${TRANSLATE_CONCURRENCY:-1}
 
 volumes:
   libretranslate_data:

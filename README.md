@@ -51,10 +51,30 @@ Le bot attend automatiquement que LibreTranslate soit prêt avant de se connecte
    | `LIBRETRANSLATE_URL` | `http://libretranslate:5000` |
    | `LIBRETRANSLATE_API_KEY` | *(laisser vide)* |
    | `LT_LOAD_ONLY` | `ar,cs,da,de,el,en,es,fi,fr,hu,it,ja,ko,nl,no,pl,pt,ro,ru,sv,tr,uk,zh` |
+   | `LT_DATA_PATH` | *(vide = volume nommé, ou chemin hôte pour un bind mount)* |
+   | `BOT_REPLICAS` | `1` *(`0` pour lancer LibreTranslate seul)* |
 
 4. Cliquer sur **Deploy the stack**.
 
 > **Note Portainer :** les variables définies dans l'interface Portainer remplacent le fichier `.env`. Ne pas committer de `.env` contenant un vrai token dans le dépôt.
+
+---
+
+## Migration vers un nouvel hôte (ex. Unraid)
+
+Le bot est sans état : seuls les modèles LibreTranslate sont stockés, et ils se re-téléchargent. Le point critique est de **ne jamais faire tourner deux bots avec le même token** (chaque réaction serait traduite deux fois).
+
+1. **Préparer le stockage** (terminal Unraid) — l'image LibreTranslate tourne en UID/GID 1032 :
+   ```bash
+   mkdir -p /mnt/user/appdata/babel-bot/libretranslate
+   chown -R 1032:1032 /mnt/user/appdata/babel-bot/libretranslate
+   ```
+2. **Pré-chauffer** : créer le stack Portainer (Repository) avec le même `DISCORD_TOKEN`, `LT_DATA_PATH=/mnt/user/appdata/babel-bot/libretranslate` et `BOT_REPLICAS=0`. Attendre que `libretranslate` soit `healthy` (téléchargement des modèles, 2–5 min).
+3. **Basculer** :
+   - ancien hôte : désactiver GitOps sur le stack, puis **Stop** (ne pas supprimer — c'est le rollback) ;
+   - nouvel hôte : `BOT_REPLICAS=1` → **Update the stack** ; vérifier les logs et tester une réaction drapeau.
+4. **Rollback** : stopper le stack du nouvel hôte, redémarrer l'ancien.
+5. **Décommission** : après une semaine sans incident, supprimer le stack de l'ancien hôte.
 
 ---
 
@@ -98,6 +118,10 @@ Pour ajouter une langue, éditer le dictionnaire `EMOJI_TO_LANG` dans `bot/main.
 | `LIBRETRANSLATE_URL` | Non | URL interne LibreTranslate (défaut : `http://libretranslate:5000`) |
 | `LIBRETRANSLATE_API_KEY` | Non | Clé API LibreTranslate (optionnel) |
 | `LT_LOAD_ONLY` | Non | Langues à charger au démarrage de LibreTranslate |
+| `TRANSLATE_TIMEOUT` | Non | Timeout des requêtes de traduction en secondes (défaut : `60.0`) |
+| `TRANSLATE_CONCURRENCY` | Non | Requêtes simultanées max vers LibreTranslate (défaut : `1`) |
+| `LT_DATA_PATH` | Non | Chemin hôte des modèles LibreTranslate (défaut : volume nommé `libretranslate_data`) |
+| `BOT_REPLICAS` | Non | Nombre de conteneurs bot ; `0` pour lancer LibreTranslate seul (défaut : `1`) |
 
 ---
 

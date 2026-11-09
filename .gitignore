@@ -23,3 +23,8 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local agent tooling (skills installed via `npx skills`)
+.agents/
+.claude/
+skills-lock.json
