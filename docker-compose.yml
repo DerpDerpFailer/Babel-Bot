@@ -24,7 +24,7 @@ services:
     build: ./bot
     container_name: babel-bot
     restart: unless-stopped
-    labels: ["net.unraid.docker.icon=https://cdn.jsdelivr.net/gh/DerpDerpFailer/Babel-Bot@main/icon/babel-bot.png"]
+    labels: ["net.unraid.docker.icon=https://cdn.jsdelivr.net/gh/DerpDerpFailer/Babel-Bot@main/icon/babel-bot-256.png"]
     depends_on:
       libretranslate:
         condition: service_healthy
