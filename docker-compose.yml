@@ -5,6 +5,7 @@ services:
     image: libretranslate/libretranslate:v1.9.6
     container_name: babel-bot-libretranslate
     restart: unless-stopped
+    labels: ["net.unraid.docker.icon=https://cdn.jsdelivr.net/gh/selfhst/icons/png/libretranslate.png"]
     environment:
       - LT_LOAD_ONLY=${LT_LOAD_ONLY:-ar,cs,da,de,el,en,es,fi,fr,hu,it,ja,ko,nl,pl,pt,ro,ru,sv,tr,uk,zh}
       - LT_API_KEYS=${LIBRETRANSLATE_API_KEY:-}
@@ -23,6 +24,7 @@ services:
     build: ./bot
     container_name: babel-bot
     restart: unless-stopped
+    labels: ["net.unraid.docker.icon=https://cdn.jsdelivr.net/gh/DerpDerpFailer/Babel-Bot@main/icon/babel-bot.png"]
     depends_on:
       libretranslate:
         condition: service_healthy
