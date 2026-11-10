@@ -3,6 +3,7 @@ services:
   libretranslate:
     # Pinned: bump deliberately, never track :latest
     image: libretranslate/libretranslate:v1.9.6
+    container_name: babel-bot-libretranslate
     restart: unless-stopped
     environment:
       - LT_LOAD_ONLY=${LT_LOAD_ONLY:-ar,cs,da,de,el,en,es,fi,fr,hu,it,ja,ko,nl,pl,pt,ro,ru,sv,tr,uk,zh}
@@ -20,11 +21,13 @@ services:
 
   bot:
     build: ./bot
+    container_name: babel-bot
     restart: unless-stopped
     depends_on:
       libretranslate:
         condition: service_healthy
-    # Set BOT_REPLICAS=0 to run LibreTranslate alone (pre-warm before a cutover)
+    # Set BOT_REPLICAS=0 to run LibreTranslate alone (pre-warm before a cutover).
+    # Only 0 or 1: container_name forbids multiple replicas (and one token = one bot anyway).
     deploy:
       replicas: ${BOT_REPLICAS:-1}
     environment:

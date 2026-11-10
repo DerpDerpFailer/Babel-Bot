@@ -121,7 +121,7 @@ Pour ajouter une langue, éditer le dictionnaire `EMOJI_TO_LANG` dans `bot/main.
 | `TRANSLATE_TIMEOUT` | Non | Timeout des requêtes de traduction en secondes (défaut : `60.0`) |
 | `TRANSLATE_CONCURRENCY` | Non | Requêtes simultanées max vers LibreTranslate (défaut : `1`) |
 | `LT_DATA_PATH` | Non | Chemin hôte des modèles LibreTranslate (défaut : volume nommé `libretranslate_data`) |
-| `BOT_REPLICAS` | Non | Nombre de conteneurs bot ; `0` pour lancer LibreTranslate seul (défaut : `1`) |
+| `BOT_REPLICAS` | Non | `1` = bot actif, `0` = LibreTranslate seul (défaut : `1`). Pas d'autre valeur : les conteneurs ont un `container_name` fixe (`babel-bot`, `babel-bot-libretranslate`) |
 
 ---
 
