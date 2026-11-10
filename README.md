@@ -10,7 +10,7 @@ Réagis à n'importe quel message avec un emoji drapeau pour recevoir la traduct
 
 - Docker + Docker Compose (v2) installés sur la VM
 - Un bot Discord avec le token disponible ([guide](https://discord.com/developers/applications))
-- Intents activés dans le portail développeur Discord : **Message Content Intent** + **Server Members Intent**
+- Intent privilégié activé dans le portail développeur Discord : **Message Content Intent** (le bot n'utilise pas le Server Members Intent ni le Presence Intent)
 
 ---
 
@@ -18,8 +18,8 @@ Réagis à n'importe quel message avec un emoji drapeau pour recevoir la traduct
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/<votre-user>/translation-bot.git
-cd translation-bot
+git clone https://github.com/DerpDerpFailer/Babel-Bot.git
+cd Babel-Bot
 
 # 2. Créer le fichier .env
 cp .env.example .env
@@ -128,11 +128,13 @@ Pour ajouter une langue, éditer le dictionnaire `EMOJI_TO_LANG` dans `bot/main.
 ## Structure du projet
 
 ```
-translation-bot/
+Babel-Bot/
 ├── bot/
 │   ├── main.py          # Code principal du bot
 │   ├── requirements.txt
 │   └── Dockerfile
+├── icon/
+│   └── babel-bot-256.png  # Icône Unraid (label net.unraid.docker.icon)
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
